@@ -1,0 +1,48 @@
+@model IEnumerable<ECommerceApp.Models.Category>
+
+@{
+    ViewData["Title"] = "Categorys List";
+}
+
+<h2>Categorys</h2>
+<p>
+    <a asp-action="Create">New Category</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.CategoryId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(model => item.CategoryId)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => item.Description)
+                </td>
+                <td>
+                    <a asp-action="Editar" asp-route-itemid="@item.CategoryId">Editar</a>
+                    <a asp-action="" asp-route-itemid="@item.CategoryId">Detalhes</a>
+                    <a asp-action="" asp-route-itemid="@item.CategoryId">Deletar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
