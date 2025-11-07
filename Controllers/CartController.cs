@@ -87,7 +87,7 @@ namespace ECommerceApp.Controllers
             
             cartBase.UserId = userId;
             cartBase.ProductId = cart.ProductId;
-            cartBase.Quality = cart.Quality;
+            cartBase.Quantity = cart.Quantity;
 
             _context.Carts.Update(cartBase);
             await _context.SaveChangesAsync();
