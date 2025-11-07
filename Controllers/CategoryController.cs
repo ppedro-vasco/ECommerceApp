@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 using ECommerceApp.Data;
 using ECommerceApp.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ActionConstraints;
 
 namespace ECommerceApp.Controllers
 {
@@ -54,7 +50,7 @@ namespace ECommerceApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult Update(int id)
+        public IActionResult Edit(int id)
         {
             var category = _context.Categories.Find(id);
             if (category == null)
@@ -65,7 +61,7 @@ namespace ECommerceApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Update(Category category)
+        public async Task<IActionResult> Edit(Category category)
         {
             var categoryBase = await _context.Categories.FindAsync(category.CategoryId);
             if (categoryBase == null)
