@@ -2,6 +2,7 @@ using ECommerceApp.Data;
 using ECommerceApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceApp.Controllers
 {
@@ -16,13 +17,16 @@ namespace ECommerceApp.Controllers
 
         public IActionResult Index()
         {
-            var products = _context.Products.ToList();
+            var products = _context.Products.Include(p => p.Category).ToList();
             return View(products);
         }
 
         public IActionResult Details(int id)
         {
-            var product = _context.Products.Find(id);
+            var product = _context.Products
+            .Include(p => p.Category)
+            .FirstOrDefault(p => p.ProductId == id);
+            
             if (product == null)
                 return NotFound();
 

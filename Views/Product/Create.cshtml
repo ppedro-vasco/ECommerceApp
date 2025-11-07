@@ -1,0 +1,53 @@
+@model ECommerceApp.Models.Product
+
+@{
+    ViewData["Title"] = "Create Product";
+}
+
+<h2>Create Product</h2>
+
+<hr/>
+
+<form asp-action="Create" method="post">
+
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    
+    <div class="form-group">
+        <label asp-for="Name"></label>
+        <input asp-for="Name" class="form-control">
+        <span asp-validation-for="Name"></span>
+    </div>
+
+    <br />
+    <div class="form-group">
+        <p>Description</p>
+        <textarea asp-for="Description" class="form-control"></textarea>
+        <span asp-validation-for="Description"></span>
+    </div>
+
+    <br />
+    <div class="form-group">
+        <p>Price</p>
+        <input asp-for="Price" class="form-control" />
+        <span asp-validation-for="Price"></span>
+    </div>
+
+    <br />
+    <div class="form-group">
+        <p>Categories</p>
+        <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-control"></select>
+    </div>
+
+    <br />
+    <div class="form-group d-flex justify-content-between align-items-center">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            Back
+        </a>
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Create</button>
+        </div>
+    </div>
+
+</form>
