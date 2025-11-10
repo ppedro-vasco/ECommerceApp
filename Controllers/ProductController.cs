@@ -1,5 +1,6 @@
 using ECommerceApp.Data;
 using ECommerceApp.Models;
+using ECommerceApp.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -8,24 +9,24 @@ namespace ECommerceApp.Controllers
 {
     public class ProductController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IProductService _productService;
+        private readonly ICategoryService _categoryService;
 
-        public ProductController(AppDbContext context)
+        public ProductController(IProductService productService, ICategoryService categoryService)
         {
-            _context = context;
+            _productService = productService;
+            _categoryService = categoryService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var products = _context.Products.Include(p => p.Category).ToList();
+            var products = await _productService.GetAllAsync();
             return View(products);
         }
 
-        public IActionResult Details(int id)
+        public async Task<IActionResult> Details(int id)
         {
-            var product = _context.Products
-            .Include(p => p.Category)
-            .FirstOrDefault(p => p.ProductId == id);
+            var product = await _productService.GetByIdAsync(id);
             
             if (product == null)
                 return NotFound();
@@ -34,9 +35,10 @@ namespace ECommerceApp.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewBag.Categories = new SelectList(_context.Categories, "CategoryId", "Name");
+            var categories = await _categoryService.GetAllAsync();
+            ViewBag.Categories = new SelectList(categories, "CategoryId", "Name");
             return View();
         }
 
@@ -44,25 +46,26 @@ namespace ECommerceApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Product product)
         {
+            var categories = await _categoryService.GetAllAsync();
             if (!ModelState.IsValid)
             {
-                ViewBag.Categories = new SelectList(_context.Categories, "CategoryId", "Name");
+                ViewBag.Categories = new SelectList(categories, "CategoryId", "Name");
                 return View(product);
             }
                 
-            _context.Products.Add(product);
-            await _context.SaveChangesAsync();
-
+            await _productService.CreateAsync(product);
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
-            var product = _context.Products.Find(id);
+            var product = await _productService.GetByIdAsync(id);
+            var categories = await _categoryService.GetAllAsync();
+
             if (product == null)
                 return NotFound();
 
-            ViewBag.Categories = new SelectList(_context.Categories, "CategoryId", "Name", product.CategoryId);
+            ViewBag.Categories = new SelectList(categories, "CategoryId", "Name");
             return View(product);
         }
 
@@ -70,28 +73,28 @@ namespace ECommerceApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Product product)
         {
-            var productBase = await _context.Products.FindAsync(product.ProductId);
-            if (productBase == null)
+            var productDb = await _productService.GetByIdAsync(product.ProductId);
+            var categories = await _categoryService.GetAllAsync();
+
+            if (productDb == null)
             {
-                ViewBag.Categories = new SelectList(_context.Categories, "CategoryId", "Name");
+                ViewBag.Categories = new SelectList(categories, "CategoryId", "Name");
                 return NotFound();
             }
 
-            productBase.Name = product.Name;
-            productBase.Price = product.Price;
-            productBase.Description = product.Description;
-            productBase.CategoryId = product.CategoryId;
-            productBase.UserId = product.UserId; //Seller
+            productDb.Name = product.Name;
+            productDb.Price = product.Price;
+            productDb.Description = product.Description;
+            productDb.CategoryId = product.CategoryId;
+            productDb.UserId = product.UserId; //Seller
 
-            _context.Products.Update(productBase);
-            await _context.SaveChangesAsync();
-
+            await _productService.UpdateAsync(productDb);
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var product = _context.Products.Find(id);
+            var product = _productService.GetByIdAsync(id);
             if (product == null)
                 return NotFound();
 
@@ -102,13 +105,11 @@ namespace ECommerceApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var productBase = await _context.Products.FindAsync(id);
-            if (productBase == null)
+            var productDb = await _productService.GetByIdAsync(id);
+            if (productDb == null)
                 return NotFound();
 
-            _context.Products.Remove(productBase);
-            await _context.SaveChangesAsync();
-
+            await _productService.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
     }

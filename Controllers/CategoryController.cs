@@ -1,28 +1,28 @@
-
-using ECommerceApp.Data;
 using ECommerceApp.Models;
+using ECommerceApp.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceApp.Controllers
 {
     public class CategoryController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly ICategoryService _categoryService;
 
-        public CategoryController(AppDbContext context)
+        public CategoryController(ICategoryService categoryService)
         {
-            _context = context;
+            _categoryService = categoryService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var categories = _context.Categories.ToList();
+
+            var categories = await _categoryService.GetAllAsync();
             return View(categories);
         }
 
-        public IActionResult Details(int id)
+        public async Task<IActionResult> Details(int id)
         {
-            var category = _context.Categories.Find(id);
+            var category = await _categoryService.GetByIdAsync(id);
             if (category == null)
                 return NotFound();
 
@@ -44,15 +44,14 @@ namespace ECommerceApp.Controllers
                 return View(category);
             }
 
-            _context.Categories.Add(category);
-            await _context.SaveChangesAsync();
-
+            await _categoryService.CreateAsync(category);
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult Edit(int id)
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
         {
-            var category = _context.Categories.Find(id);
+            var category = _categoryService.GetByIdAsync(id);
             if (category == null)
                 return NotFound();
 
@@ -63,22 +62,20 @@ namespace ECommerceApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Category category)
         {
-            var categoryBase = await _context.Categories.FindAsync(category.CategoryId);
-            if (categoryBase == null)
+            var categoryDb = await _categoryService.GetByIdAsync(category.CategoryId);
+            if (categoryDb == null)
                 return NotFound();
 
-            categoryBase.Name = category.Name;
-            categoryBase.Description = category.Description;
+            categoryDb.Name = category.Name;
+            categoryDb.Description = category.Description;
         
-            _context.Categories.Update(categoryBase);
-            await _context.SaveChangesAsync();
-
+            await _categoryService.UpdateAsync(categoryDb);
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var category = _context.Categories.Find(id);
+            var category = await _categoryService.GetByIdAsync(id);
             if (category == null)
                 return NotFound();
 
@@ -89,13 +86,11 @@ namespace ECommerceApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var categoryBase = await _context.Categories.FindAsync(id);
-            if (categoryBase == null)
+            var categoryDb = await _categoryService.GetByIdAsync(id);
+            if (categoryDb == null)
                 return NotFound();
 
-            _context.Categories.Remove(categoryBase);
-            await _context.SaveChangesAsync();
-
+            await _categoryService.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
     }
