@@ -21,6 +21,7 @@ namespace ECommerceApp.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<ProductOrder> ProductOrders {get; set;}              
         public DbSet<Cart> Carts { get; set; } 
+        public DbSet<CartItem> CartItems { get; set; }
 
         public DbSet<Review> Reviews { get; set; }  
     }

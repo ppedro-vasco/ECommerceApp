@@ -1,44 +1,36 @@
-using System.Security.Claims;
-using ECommerceApp.Data;
 using ECommerceApp.Models;
+using ECommerceApp.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceApp.Controllers
 {
     public class CartController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly ICartService _cartService;
 
-        public CartController(AppDbContext context)
+        public CartController(ICartService cartService)
         {
-            _context = context;
+            _cartService = cartService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var cart = _context.Carts
-            .Where(c => c.UserId == userId)
-            .Include(c => c.Product)
-            .ToList();
+            var carts = await _cartService.GetAllAsync();
+            return View(carts);
+        }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            var cart = await _cartService.GetByIdAsync(id);
+            if (cart == null)
+                return NotFound();
 
             return View(cart);
         }
 
-        public IActionResult Details(int id)
+        [HttpGet]
+        public async Task<IActionResult> Create()
         {
-            var carts = _context.Carts.Find(id);
-            if (carts == null)
-                return NotFound();
-
-            return View(carts);
-        }
-
-        public IActionResult Create()
-        {
-            ViewBag.Products = new SelectList(_context.Products, "ProductId", "Name");
             return View();
         }
 
@@ -48,56 +40,45 @@ namespace ECommerceApp.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Products = new SelectList(_context.Products, "ProductId", "Name");
                 return View(cart);
             }
 
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // captura id do usuario logado
-            
-            if (userId == null)
-                return Unauthorized();
-
-            cart.UserId = userId;
-
-            _context.Carts.Add(cart);
-            await _context.SaveChangesAsync();
-
+            cart.UserId = "temp_user"; // apenas para evitar erro de FK até existir login
+            await _cartService.CreateAsync(cart);
             return RedirectToAction(nameof(Index));
+
         }
 
-        public IActionResult Edit(int id)
+        #region Edit
+        // [HttpGet]
+        // public async Task<IActionResult> Edit(int id)
+        // {
+        //     var cart = await _cartService.GetByIdAsync(id);
+        //     if (cart == null)
+        //         return NotFound();
+
+        //     return View(cart);
+        // }
+
+        // [HttpPost]
+        // public async Task<IActionResult> Edit(Cart cart)
+        // {
+        //     // preciso de um edit para essa camada de cart? nao ficaria responsabilidade de um CartItemController?
+        //     var cartDb = await _cartService.GetByIdAsync(cart.CartId);
+        //     if (cartDb == null)
+        //         return NotFound();
+
+        //     cartDb.Items = cart.Items;
+
+        //     await _cartService.UpdateAsync(cartDb);
+        //     return RedirectToAction(nameof(Index));
+        // }
+        #endregion
+        
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id)
         {
-            var cart = _context.Carts.Find(id);
-            if (cart == null)
-                return NotFound();
-            
-            ViewBag.Products = new SelectList(_context.Products, "ProductId", "Name");
-            return View(cart);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Cart cart)
-        {
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            var cartBase = await _context.Carts.FindAsync(cart.CartId);
-            if (cartBase == null || cartBase.UserId != userId)
-                return NotFound();
-            
-            cartBase.UserId = userId;
-            cartBase.ProductId = cart.ProductId;
-            cartBase.Quantity = cart.Quantity;
-
-            _context.Carts.Update(cartBase);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        public IActionResult Delete(int id)
-        {
-            var cart = _context.Carts.Find(id);
+            var cart = await _cartService.GetByIdAsync(id);
             if (cart == null)
                 return NotFound();
 
@@ -108,14 +89,13 @@ namespace ECommerceApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var cartBase = await _context.Carts.FindAsync(id);
-            if (cartBase == null)
+            var cartDb = await _cartService.GetByIdAsync(id);
+
+            if (cartDb == null)
                 return NotFound();
-
-            _context.Carts.Remove(cartBase);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Index));  
+            
+            await _cartService.DeleteAsync(id);
+            return RedirectToAction(nameof(Index));
         }
     }
 }

@@ -51,7 +51,7 @@ namespace ECommerceApp.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var category = _categoryService.GetByIdAsync(id);
+            var category = await _categoryService.GetByIdAsync(id);
             if (category == null)
                 return NotFound();
 
