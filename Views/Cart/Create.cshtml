@@ -1,0 +1,21 @@
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
+@model ECommerceApp.Models.Cart
+
+@{
+    ViewData["Title"] = "Create Cart";
+}
+
+<h2>Create Cart</h2>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    
+    <div class="from-group">
+        <label>User</label>
+        <input type="text" class="form-control" value="temp_user" disabled/>
+        <span ckass="text-muted">The user </span>
+    </div>
+
+    <button type="submit" class="btn btn-success">Save</button>
+    <a asp-action="Index" class="btn btn-sucondary">Back</a>
+</form>

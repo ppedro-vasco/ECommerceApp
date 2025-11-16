@@ -1,0 +1,70 @@
+@model ECommerceApp.Models.Cart
+
+@{
+    ViewData["Title"] = "Cart";
+}
+
+<h2>Cart @Model.CartId</h2>
+
+<hr/>
+
+<h3>Itens</h3>
+
+<table>
+    <tr>
+        <th>Product</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th>Sbutotal</th>
+        <th>Actions</th>
+    </tr>
+    <tbody>
+        @foreach(var item in Model.Items)
+        {
+            <tr>
+                <td>@item.Product.Name</td>
+                <td>R$ @item.Product.Price</td>
+
+                <td>
+                    <form asp-controller="CartItem" asp-action="UpdateQuantity" method="post">
+                        <input type="hidden" name="cartItemId" value="@item.CartItemId" />
+                        <input type="number" name="newQuantity" value="@item.Quantity" class="form-control" style="width:80px" />
+                        <button type="submit" class="btn btn-primary btn-sm mt-1">Reload</button>    
+                    </form>
+                </td>
+                <td>
+                    R$ @(item.Product.Price * item.Quantity)
+                </td>
+                <td>
+                    <form asp-controller="CartItem" asp-action="RemoveItem" method="post">
+                        <input type="hidden" name="itemId" value="@item.CartItemId" />
+                        <button type="submit" class="btn btn-danger btn-sm">Remover</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<hr/>
+
+<form asp-controller="CartItem" asp-action="AddItem" method="post">
+    <input type="hidden" name="cartId" value="@Model.CartId" />
+
+    <div class="form-group">
+        <label>Produto</label>
+        <select class="form-control" name="productId">
+            @foreach (var product in ViewBag.Products)
+            {
+                <option value="@product.ProductId">@product.Name - R$ @product.Price</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group mt-2">
+        <label>Quantidade</label>
+        <input type="number" name="quantity" value="1" min="1" class="form-control" style="width:100px" />
+    </div>
+
+    <button type="submit" class="btn btn-success mt-2">Add</button>
+</form>

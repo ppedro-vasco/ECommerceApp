@@ -15,7 +15,7 @@ namespace ECommerceApp.Models
         public Cart Cart { get; set; }
 
         [ForeignKey("Product")]
-        public int productId { get; set; }
+        public int ProductId { get; set; }
         public Product Product { get; set; }
         public int Quantity { get; set; }
     }

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using ECommerceApp.Models;
 using ECommerceApp.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -7,10 +8,12 @@ namespace ECommerceApp.Controllers
     public class CartController : Controller
     {
         private readonly ICartService _cartService;
+        private readonly IProductService _productService;
 
-        public CartController(ICartService cartService)
+        public CartController(ICartService cartService, IProductService productService)
         {
             _cartService = cartService;
+            _productService = productService;
         }
 
         public async Task<IActionResult> Index()
@@ -25,6 +28,7 @@ namespace ECommerceApp.Controllers
             if (cart == null)
                 return NotFound();
 
+            ViewBag.Products = await _productService.GetAllAsync();
             return View(cart);
         }
 
@@ -43,7 +47,7 @@ namespace ECommerceApp.Controllers
                 return View(cart);
             }
 
-            cart.UserId = "temp_user"; // apenas para evitar erro de FK até existir login
+            cart.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             await _cartService.CreateAsync(cart);
             return RedirectToAction(nameof(Index));
 
